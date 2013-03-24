@@ -1,0 +1,138 @@
+.wordlist {
+    display: block;
+    margin: 0;
+    padding: 0.175em 0em;
+    list-style-type: none;
+    list-style-position: inside;
+}
+
+.wordlist li a {
+    display:block;
+    padding: 0px 0.9375em;
+}
+
+.wordlist li a:hover {
+    color: white;
+    background: #8A6343;
+}
+
+
+
+/* patches for word detail */
+.detail h3 {
+    margin-top: -0.2em;
+    color:#6f6f6f;
+    float: left;
+}
+.detail .title {
+    margin:0px;
+}
+.detail .title a{
+    line-height: 2em;
+    padding-left:20px;
+}
+.collins .tab_list {
+    display: none;
+}
+.collins_en_cn {
+    line-height: 20px;
+}
+.caption {
+    background: #f7f7f6;
+    color: #333;
+    font-size: 14px;
+    font-weight: normal;
+    padding: 9px 9px 9px 32px;
+    text-indent: -15px;
+    margin-bottom: 11px;
+    position: relative;
+}
+.caption .num {
+    text-indent: -15px;
+    font-weight: bold;
+    color: #666;
+}
+.caption .st {
+    position:relative;
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+    padding-right: 9px;
+    z-index: 700;
+}
+.caption .text_blue {
+    padding-right: 8px;
+}
+.collins_en_cn ul {
+    color: #666;
+    padding: 0 20px 1px 47px;
+}
+.collins p,
+.collins ul{
+    margin: 0px;
+}
+.collins ul,
+.collins li {
+    list-style: none;
+}
+.collins .collins_content,
+.collins .part_list,
+.collins a{
+    font-size:14px;
+}
+.collins_en_cn li, .vExplain_r li {
+    xxbackground: url(../images/bg_index.gif) no-repeat -244px -548px;
+    list-style: disc;
+    padding-bottom: 11px;
+    clear: both;
+    padding-left: 10px;
+}
+.collins_en_cn li.explain_s, .collins_en_cn li.explain_c, .collins_en_cn li.explain_r, .vExplain_s {
+    background: #f9f9dc;
+    color: #333;
+    line-height: 24px;
+    padding: 3px 25px 3px 10px;
+    border: #CBD7E0 1px solid;
+    margin-bottom: 10px;
+    text-indent: 0;
+}
+.collins_en_cn li.explain_r, .vExplain_r {
+    background-color: #f9f9dc;
+}
+.vExplain_r {
+    padding: 5px 25px 5px 13px;
+    border: #CBD7E0 1px solid;
+    background-position: 14px 2px;
+    margin-bottom: 10px;
+    color: #333;
+    line-height: 24px;
+}
+.vExplain_r ul {
+    padding: 0 45px 1px 15px;
+    line-height: 20px;
+}
+.vExplain_s i, .collins_en_cn li.explain_r i, .vExplain_r i, .collins_en_cn .bg_doc i, .vBg_doc i, .collins_en_cn li.explain_s i, .collins_en_cn li.explain_c i {
+    display: block;
+    width: 10px;
+    height: 9px;
+    xxbackground: url(../images/bg_index.gif) no-repeat -230px -340px;
+    float: left;
+    margin-top: 8px;
+    margin-right: 8px;
+    overflow: hidden;
+    _margin-right: 4px;
+}
+.collins_en_cn .en_tip, .vEn_tip {
+    background-color: #F9F9DC;
+    border: #CBD7E0 1px solid;
+    line-height: 24px;
+    padding: 5px 9px 10px 15px;
+    margin: 10px 0;
+    color: #333;
+}
+/* 如case这样的词，会有这个part_list */
+.part_list {
+    background-color: #F1F4FC;
+    line-height: 24px;
+    padding: 7px 12px;
+}

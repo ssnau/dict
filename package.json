@@ -1,0 +1,15 @@
+{
+  "name": "omniDictionary",
+  "description": "a dictionary that can do anything",
+  "author": "ssnau",
+  "version": "0.0.1",
+  "dependencies": {
+  	"underscore": "*",
+    "q": "*",
+    "express": ">2.5.8",
+    "ejs": ">0.6.1"
+  },
+  "devDependencies": {
+  },
+  "engine": "node >= 0.6.6"
+}
