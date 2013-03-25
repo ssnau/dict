@@ -28,13 +28,16 @@
 <div class="row"  ng-controller="Dict">
     <div class="large-4 columns">
         <div class="row">
-            <div class="large-12 columns">
-                <input type="text" ng-model="searchword" placeholder="Search Your Word">
+            <div class="large-12 columns searchbar" wildcard="word:searchword">
+                <input type="text" ng-model="word"  placeholder="Search Your Word" />
+                <small>Invalid Search Word</small>
             </div>
         </div>
         <div class="row">
-            <ul class="wordlist" ng-repeat="word in wordlist | regexp:searchword | orderBy:'length' | limitTo:50">
-                <li><a href="#/{{word}}">{{word}}</a></li>
+            <ul class="wordlist" >
+                <li ng-repeat="word in wordlist | regexp:searchword | orderBy:'length' | limitTo:50">
+                    <a live="#/{{word}}" href="#/{{word}}">{{word}}</a>
+                </li>
             </ul>
         </div>
 
@@ -49,6 +52,7 @@
 <script src="js/angular.js"></script>
 <script src="js/underscore.js"></script>
 <script src="js/underscore.string.js"></script>
+<script src="js/keymaster.js"></script>
 <script>
     var wordList = <%- wordlist -%>;
 </script>

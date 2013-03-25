@@ -5,17 +5,24 @@
     list-style-type: none;
     list-style-position: inside;
 }
-
+.wordlist li {
+    padding: 0px 0.9375em;
+}
 .wordlist li a {
     display:block;
-    padding: 0px 0.9375em;
+    padding-left: 0.315em;
 }
 
 .wordlist li a:hover {
     color: white;
     background: #8A6343;
 }
-
+.searchbar small {
+    display:none;
+}
+.searchbar.error small {
+    display: block;
+}
 
 
 /* patches for word detail */
@@ -135,4 +142,8 @@
     background-color: #F1F4FC;
     line-height: 24px;
     padding: 7px 12px;
+    display:none; /*隐藏掉算了*/
+}
+.close, .menu_switch {
+    display:none;
 }
