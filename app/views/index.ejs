@@ -35,7 +35,7 @@
         </div>
         <div class="row">
             <ul class="wordlist" >
-                <li ng-repeat="word in wordlist | regexp:searchword | orderBy:'length' | limitTo:50">
+                <li ng-repeat="word in wordlist | regexp:searchword | orderBy:'length'| limitTo:50">
                     <a live="#/{{word}}" href="#/{{word}}">{{word}}</a>
                 </li>
             </ul>

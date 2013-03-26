@@ -44,14 +44,14 @@ app.directive("wildcard", function(){
 
            scope.$watch(watched, function(){
                var w = (scope.word && _.string.trim(scope.word)) || "";
-               if (_.indexOf(w, '\\') !== -1) {
+               if (/[^a-zA-Z0-9 *]/.test(w)) {
                    w = "";
                    //TODO: we need to emit event, not handle css class here
                    element.addClass("error");
                } else {
                    element.removeClass("error");
                }
-               scope[target] = w.replace("*", ".*");
+               scope[target] = w && "^" + w.replace(/\*/g, ".*");
            })
        }
    }
