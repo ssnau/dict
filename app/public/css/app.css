@@ -13,7 +13,8 @@
     padding-left: 0.315em;
 }
 
-.wordlist li a:hover {
+.wordlist li a:hover,
+.wordlist li a:focus{
     color: white;
     background: #8A6343;
 }

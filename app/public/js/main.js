@@ -1,13 +1,13 @@
-
 var app = angular.module('DictApp', []);
 
+/* route */
 app.config(function($routeProvider) {
     $routeProvider.when("/:word", {
         controller: "Detail",
         template:"<div collins=\'{{word}}\' collins class=\'detail\'>\n    <div class=\'title row\'>\n        <h3>{{word}}</h3>\n        <a read=\'{{word}}\' href=\"#\">read</a>\n    </div>\n</div>"
     })
 });
-
+/* controllers*/
 app.controller("Dict", function($scope, $routeParams){
     $scope.wordlist = wordList;
 });
@@ -17,6 +17,12 @@ app.controller("Detail", function($scope, $routeParams){
     $scope.word = word;
 });
 
+/* filters */
+/**
+ * @param input [Array]
+ * @search input [String] will be convert to RegExp
+ * @return [Array]
+ */
 app.filter('regexp', function(){
     return function(input, search){
         if (!_.string.trim(search)) return false;
@@ -29,9 +35,14 @@ app.filter('regexp', function(){
     };
 });
 
+/* directives */
+
 /**
  * wildcard require two parameters, wildcard="A:B“
  * A stands for the input while B is the output
+ * NOTICE: output is string to be used with new RegExp(output), the reason I leave
+ * it to be RAW String is that once I make it into RegExp I don't
+ * know how to safely make it Case Insensitive in the succeed function.
  */
 app.directive("wildcard", function(){
    return {
@@ -44,14 +55,14 @@ app.directive("wildcard", function(){
 
            scope.$watch(watched, function(){
                var w = (scope.word && _.string.trim(scope.word)) || "";
-               if (/[^a-zA-Z0-9 *]/.test(w)) {
+               if (/[^a-zA-Z0-9.*$]/.test(w)) {
                    w = "";
                    //TODO: we need to emit event, not handle css class here
                    element.addClass("error");
                } else {
                    element.removeClass("error");
                }
-               scope[target] = w && "^" + w.replace(/\*/g, ".*");
+               scope[target] = w && "^" + w.replace(/\./, "\\.").replace(/\*/g, ".*");
            })
        }
    }
@@ -133,6 +144,90 @@ app.directive("read", function(){
     });
 })();
 
+/**
+ * used to make a list selectable, need to used on <a> and set its :focus style
+ * usage: <a selectlist="namespace" />
+ */
+(function(){
+    app.directive("selectlist", function(){
+        return {
+            link: function(scope, element) {
+                scope.$watch("$index", function(){
+                    element.attr("sl-inx", scope.$index);
+                });
+                register(element.attr("selectlist"), scope);
+                }
+            }
+    });
+
+
+
+    var namespaces = [];
+
+    /**
+     * The reason we need this function is that we need each namespace
+     * to be registered correctly.
+     * @param namespace
+     */
+    function register(namespace) {
+        // if already registered
+        if (_.indexOf(namespaces, namespace) !== -1) return;
+        namespaces.push(namespace);
+        key("down", function(e){
+            var element = angular.element(e.target),
+                nextElement = getSibling(e.target, namespace, true);
+            nextElement && nextElement.focus();
+            // we need element.scope() to get the exact scope
+            // if we use a scope that its corresponding element
+            // is not in the dom tree, it do not have a parent scope
+            // that make the $emit useless.
+            !nextElement && element.scope().$emit("SelectListOutOfBottomBound", {"ns": namespace})
+            e.preventDefault();
+        });
+        key('up', function(e){
+            var element = angular.element(e.target),
+                prevElement = getSibling(e.target, namespace, false);
+            prevElement && prevElement.focus();
+            !prevElement && element.scope().$emit("SelectListOutOfUpperBound", {"ns": namespace});
+            e.preventDefault();
+        });
+    }
+
+    /**
+     * helper function to get the next/prev sibling
+     * @param elem {HTMLElement} the source element
+     * @param next {Boolean} TRUE to get the next sibling, FALSE to get the previous
+     * @param ns {String} namespace to determine whether we need to investigate the element
+     * @return {JQueryElement|Boolean}
+     */
+    function getSibling(elem, ns, next) {
+        var s = elem.getAttribute("selectlist") == ns ? ns : false;
+        var offset = next ? 1 : -1;
+        if (s) {
+            var index = elem.getAttribute('sl-inx') - 0;
+            var sbElement = $("a["+"selectlist="+s+"]").filter("[sl-inx="+(index+offset)+"]");
+            return (sbElement.length && sbElement.css('display') != "none") ? sbElement : false;
+        }
+        return false;
+    }
+
+})();
+
+app.directive("selectlistSource", function(){
+    return {
+        link: function(scope, element){
+            var s = element.attr('selectlist-source');
+            s = eval("({" + s + "})"); //use eval because JSON.parse may not accept '
+            _.each(s, function(v,k) {
+                if (k == "ns") return true; //ignore this one
+                scope.$on(k, function(e, params) {
+                    if (params.ns == s.ns) eval(v);
+                });
+            });
+        }
+    }
+})
+
 
 /* bind keys */
 key.filter =  function(event){
@@ -140,12 +235,27 @@ key.filter =  function(event){
     //comment the INPUT, we need to do something when the target is INPUT
     return !(/*tagName == 'INPUT' || */tagName == 'SELECT' || tagName == 'TEXTAREA');
 }
+
 key('esc', function(){
-   $(".searchbar input").val("").focus();;
+   $("#mainSearchBox").focus();;
+});
+
+key('down', function(e){
+   if (e.target.id == "mainSearchBox")   {
+       $(".wordlist li a").first().focus();
+   }
 });
 
 key('enter', function(e){
     if (e.target.tagName.toLowerCase() !== "a") {
         $('a[read]').click(); //TODO: refactor this not do dependent on a[read]
     }
+});
+key('ctrl + r', function(){
+    $('a[read]').click(); //TODO: refactor this not do dependent on a[read]
+});
+
+/* dom specific */
+$("#mainSearchBox").focus(function(){
+    $(this).select();
 });
