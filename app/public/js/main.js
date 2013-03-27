@@ -149,64 +149,87 @@ app.directive("read", function(){
  * usage: <a selectlist="namespace" />
  */
 (function(){
+    var lookup = {},
+        rev_lookup = {};
+
     app.directive("selectlist", function(){
         return {
-            link: function(scope, element) {
-                scope.$watch("$index", function(){
-                    element.attr("sl-inx", scope.$index);
-                });
-                register(element.attr("selectlist"), scope);
+            compile: function(element, attrs) {
+                var ns = attrs["selectlist"];
+                if (!lookup[ns]) lookup[ns] = {};
+                if (!rev_lookup[ns]) rev_lookup[ns] = {};
+
+                return function(scope, element) {
+                    scope.$watch("$index", function(){
+                        var ns = element.attr("selectlist");
+                        if (!element.attr('id')) {
+                            element.attr('id', _.uniqueId('selectlist_item_'))
+                        }
+                        var sIndex = scope.$index + '';
+                        // to prevent memory leak, we need to delete
+                        var pre = lookup[ns][sIndex];
+                        if (pre) {
+                            var preId = pre.attr('id');
+                            var obj = rev_lookup[ns];
+                            if (rev_lookup[ns][preId] == sIndex)
+                                delete obj[pre.attr('id')];
+                        }
+                        lookup[ns][sIndex] = element;
+                        rev_lookup[ns][element.attr('id')] = sIndex;
+                    });
                 }
             }
+        };
+    });
+
+    //register key binding event
+    key("down", function(e){
+        var element = angular.element(e.target),
+            ns = element.attr("selectlist");
+
+        if (!ns) return;
+
+        var nextElement = getSibling(element, true);
+        nextElement && nextElement.focus();
+        // we need element.scope() to get the exact scope
+        // if we use a scope that its corresponding element
+        // is not in the dom tree, it do not have a parent scope
+        // that make the $emit useless.
+        !nextElement && element.scope().$emit("SelectListOutOfBottomBound", {"ns": ns})
+        e.preventDefault();
+    });
+    key('up', function(e){
+        var element = angular.element(e.target),
+            ns = element.attr("selectlist");
+
+        if (!ns) return;
+
+        var prevElement = getSibling(element, false);
+        prevElement && prevElement.focus();
+        !prevElement && element.scope().$emit("SelectListOutOfUpperBound", {"ns": ns});
+        e.preventDefault();
     });
 
 
-
-    var namespaces = [];
-
-    /**
-     * The reason we need this function is that we need each namespace
-     * to be registered correctly.
-     * @param namespace
-     */
-    function register(namespace) {
-        // if already registered
-        if (_.indexOf(namespaces, namespace) !== -1) return;
-        namespaces.push(namespace);
-        key("down", function(e){
-            var element = angular.element(e.target),
-                nextElement = getSibling(e.target, namespace, true);
-            nextElement && nextElement.focus();
-            // we need element.scope() to get the exact scope
-            // if we use a scope that its corresponding element
-            // is not in the dom tree, it do not have a parent scope
-            // that make the $emit useless.
-            !nextElement && element.scope().$emit("SelectListOutOfBottomBound", {"ns": namespace})
-            e.preventDefault();
-        });
-        key('up', function(e){
-            var element = angular.element(e.target),
-                prevElement = getSibling(e.target, namespace, false);
-            prevElement && prevElement.focus();
-            !prevElement && element.scope().$emit("SelectListOutOfUpperBound", {"ns": namespace});
-            e.preventDefault();
-        });
-    }
-
     /**
      * helper function to get the next/prev sibling
-     * @param elem {HTMLElement} the source element
+     * @param elem {JQueryElement} the source element
      * @param next {Boolean} TRUE to get the next sibling, FALSE to get the previous
-     * @param ns {String} namespace to determine whether we need to investigate the element
      * @return {JQueryElement|Boolean}
      */
-    function getSibling(elem, ns, next) {
-        var s = elem.getAttribute("selectlist") == ns ? ns : false;
+    function getSibling(elem, next) {
+        var s = elem.attr("selectlist");
         var offset = next ? 1 : -1;
         if (s) {
+        /*
             var index = elem.getAttribute('sl-inx') - 0;
             var sbElement = $("a["+"selectlist="+s+"]").filter("[sl-inx="+(index+offset)+"]");
             return (sbElement.length && sbElement.css('display') != "none") ? sbElement : false;
+            */
+            var index = rev_lookup[s][elem.attr('id')] - 0;
+            //make sure we are looking for a string key not a number
+            var sbElement = lookup[s][(index + offset )+''];
+            return sbElement && sbElement.css('display') != "none" ? sbElement : false;
         }
         return false;
     }
