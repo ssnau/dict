@@ -274,7 +274,7 @@ key('enter', function(e){
         $('a[read]').click(); //TODO: refactor this not do dependent on a[read]
     }
 });
-key('ctrl + r', function(){
+key('ctrl + r, ctrl + enter, command + enter', function(){
     $('a[read]').click(); //TODO: refactor this not do dependent on a[read]
 });
 
