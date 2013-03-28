@@ -25,8 +25,14 @@ app.controller("Detail", function($scope, $routeParams){
  */
 app.filter('regexp', function(){
     return function(input, search){
-        if (!_.string.trim(search)) return false;
-        var reg = new RegExp(search, "i"); //case insensitive
+        var reg = null;
+        if (search instanceof RegExp) {
+            reg = search;
+        } else {
+            search = search + ""; //convert to string
+            if (!_.string.trim(search)) return false;
+            reg = new RegExp(search, "i"); //case insensitive
+        }
         var result = [];
         _.each(input, function(v){
             if (reg.test(v)) result.push(v);
@@ -38,35 +44,32 @@ app.filter('regexp', function(){
 /* directives */
 
 /**
- * wildcard require two parameters, wildcard="A:B“
- * A stands for the input while B is the output
- * NOTICE: output is string to be used with new RegExp(output), the reason I leave
- * it to be RAW String is that once I make it into RegExp I don't
- * know how to safely make it Case Insensitive in the succeed function.
+ * wildcard require ngModel and convert to value into RegExp based on WildCard criterion.
  */
+
 app.directive("wildcard", function(){
-   return {
-       link: function(scope, element, attrs) {
-           var wc = attrs.wildcard.split(":"),
-               watched = wc[0],
-               target = wc[1];
+    return {
+        restrict:"A",
+        require:"?ngModel", //? means dont raise error. http://docs.angularjs.org/guide/directive
+        link: function(scope, element, attrs, ngModel) {
+            if(!ngModel) return; // do nothing if no ng-model
 
-           if (!watched || !target) return;
+            ngModel.$parsers.unshift(function(viewValue) {
+                var w = _.string.trim(viewValue);
+                if (/[^-'a-zA-Z0-9. *$]/.test(w)) {
+                    w = "";
+                    //TODO: we need to emit event, not handle css class here
+                    element.parent().addClass("error");
+                } else {
+                    element.parent().removeClass("error");
+                }
+                w = w && new RegExp("^" + w.replace(/\./, "\\.").replace(/\*/g, ".*"), "i");
+                return w;
+            });
+        }
 
-           scope.$watch(watched, function(){
-               var w = (scope.word && _.string.trim(scope.word)) || "";
-               if (/[^a-zA-Z0-9.*$]/.test(w)) {
-                   w = "";
-                   //TODO: we need to emit event, not handle css class here
-                   element.addClass("error");
-               } else {
-                   element.removeClass("error");
-               }
-               scope[target] = w && "^" + w.replace(/\./, "\\.").replace(/\*/g, ".*");
-           })
-       }
-   }
-});
+    }
+})
 
 
 

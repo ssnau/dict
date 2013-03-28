@@ -28,14 +28,14 @@
 <div class="row"  ng-controller="Dict">
     <div class="large-4 columns">
         <div class="row">
-            <div class="large-12 columns searchbar" wildcard="word:searchword">
-                <input selectlist-source="'ns':'wl','SelectListOutOfUpperBound':'element.focus()'" id="mainSearchBox" type="text" ng-model="word"  placeholder="Search Your Word" />
+            <div class="large-12 columns searchbar">
+                <input  wildcard selectlist-source="'ns':'wl','SelectListOutOfUpperBound':'element.focus()'" id="mainSearchBox" type="text" ng-model="word"  placeholder="Search Your Word" />
                 <small>Invalid Search Word</small>
             </div>
         </div>
         <div class="row">
             <ul class="wordlist" >
-                <li ng-repeat="word in wordlist | regexp:searchword | orderBy:'length'| limitTo:50">
+                <li ng-repeat="word in wordlist | regexp:word | orderBy:'length'| limitTo:50">
                     <a selectlist="wl" live="#/{{word}}" href="#/{{word}}">{{word}}</a>
                 </li>
             </ul>
