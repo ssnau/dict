@@ -20,7 +20,7 @@ app.controller("Detail", function($scope, $routeParams){
 /* filters */
 /**
  * @param input [Array]
- * @search input [String] will be convert to RegExp
+ * @search input [String|RegExp]
  * @return [Array]
  */
 app.filter('regexp', function(){
@@ -44,7 +44,11 @@ app.filter('regexp', function(){
 /* directives */
 
 /**
- * wildcard require ngModel and convert to value into RegExp based on WildCard criterion.
+ * wildcard require ngModel and convert to value into RegExp based on WildCard criterion(Case insensitive).
+ * currently support:
+ * "*": one or more characters
+ * "?": any character
+ * [abc]: any character that belong to one of [abc]
  */
 
 app.directive("wildcard", function(){
@@ -56,14 +60,21 @@ app.directive("wildcard", function(){
 
             ngModel.$parsers.unshift(function(viewValue) {
                 var w = _.string.trim(viewValue);
-                if (/[^-'a-zA-Z0-9. *$]/.test(w)) {
+                var valid = true;
+                if (/[^-'a-zA-Z0-9. *?$\[\]]/.test(w)) {
                     w = "";
-                    //TODO: we need to emit event, not handle css class here
-                    element.parent().addClass("error");
-                } else {
-                    element.parent().removeClass("error");
+                    valid = false;
                 }
-                w = w && new RegExp("^" + w.replace(/\./, "\\.").replace(/\*/g, ".*"), "i");
+                // Prevent incomplete RegExps that throw errors, such as /ab[/
+                if (w) {
+                    try{
+                        w = new RegExp("^" + w.replace(/\./, "\\.").replace(/\*/g, ".*").replace(/\?/g, "."), "i");
+                    } catch(e) {
+                        valid = false;
+                        w = new RegExp('');
+                    }
+                }
+                ngModel.$setValidity('WildCardState', valid);
                 return w;
             });
         }
@@ -85,7 +96,7 @@ app.directive("collins", function($http){
 
                 /* replace any link into valid one*/
                 /*<a class="explain" href="/mackintosh">mackintosh</a> ==> href="#/mackintosh"*/
-                /*reception centre => reception_centre*/
+                /*reception_centre => reception centre*/
                 var explain = element.find("a.explain");
                 _.each(explain, function(el) {
                     var href = el.getAttribute("href");
@@ -99,7 +110,7 @@ app.directive("collins", function($http){
 
 app.directive("read", function(){
     return {
-        link: function(scope, element) {
+        link: function(scope, element, attrs) {
             /* play the audio */
             element.on('click', function(e){
                 e.preventDefault();
@@ -108,9 +119,9 @@ app.directive("read", function(){
                 sound.src = url;
                 sound.play();
             });
-            // watch for nothing just waiting for the
+            // observe attrs.read
             // element.attr('read') is no longer the MACRO literal
-            scope.$watch("read", function(){
+            attrs.$observe("read", function(){
                 // test whether the URL is valid
                 var url = "/voice/" + element.attr("read");
                 var sound = new Audio();
@@ -125,7 +136,7 @@ app.directive("read", function(){
 
 /**
  * used with ng-repeat, always hash with the first item.
- * NEED to write down the hash as live="#/xxxx"
+ * NEED to write down the hash as live="#xxxx"
  */
 (function(){
     var timeHandler = null;
@@ -164,18 +175,26 @@ app.directive("read", function(){
 
                 return function(scope, element) {
                     scope.$watch("$index", function(){
-                        var ns = element.attr("selectlist");
                         if (!element.attr('id')) {
                             element.attr('id', _.uniqueId('selectlist_item_'))
                         }
                         var sIndex = scope.$index + '';
-                        // to prevent memory leak, we need to delete
+
+                        // to prevent memory leak, we need to delete former rev_lookups and lookups
                         var pre = lookup[ns][sIndex];
                         if (pre) {
                             var preId = pre.attr('id');
-                            var obj = rev_lookup[ns];
-                            if (rev_lookup[ns][preId] == sIndex)
-                                delete obj[pre.attr('id')];
+                            //must check if they were equal!!
+                            if (rev_lookup[ns][preId] == sIndex) {
+                                delete rev_lookup[ns][pre.attr('id')];
+                            }
+                        }
+                        var curId = element.attr('id');
+                        var prevIndex = rev_lookup[ns][curId];
+                        // must delete in order that no multi index point to single element
+                        // that make errors.
+                        if (prevIndex && lookup[ns][prevIndex] == element) {
+                            delete lookup[ns][prevIndex];
                         }
                         lookup[ns][sIndex] = element;
                         rev_lookup[ns][element.attr('id')] = sIndex;
@@ -224,11 +243,6 @@ app.directive("read", function(){
         var s = elem.attr("selectlist");
         var offset = next ? 1 : -1;
         if (s) {
-        /*
-            var index = elem.getAttribute('sl-inx') - 0;
-            var sbElement = $("a["+"selectlist="+s+"]").filter("[sl-inx="+(index+offset)+"]");
-            return (sbElement.length && sbElement.css('display') != "none") ? sbElement : false;
-            */
             var index = rev_lookup[s][elem.attr('id')] - 0;
             //make sure we are looking for a string key not a number
             var sbElement = lookup[s][(index + offset )+''];
@@ -247,7 +261,7 @@ app.directive("selectlistSource", function(){
             _.each(s, function(v,k) {
                 if (k == "ns") return true; //ignore this one
                 scope.$on(k, function(e, params) {
-                    if (params.ns == s.ns) eval(v);
+                    if (params.ns == s.ns) eval(v);//TODO, so ugly here!
                 });
             });
         }
@@ -277,8 +291,9 @@ key('enter', function(e){
         $('a[read]').click(); //TODO: refactor this not do dependent on a[read]
     }
 });
-key('ctrl + r, ctrl + enter, command + enter', function(){
+key('ctrl + r, ctrl + enter, command + enter', function(e){
     $('a[read]').click(); //TODO: refactor this not do dependent on a[read]
+    e.preventDefault();
 });
 
 /* dom specific */

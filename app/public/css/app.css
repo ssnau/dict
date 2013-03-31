@@ -18,10 +18,10 @@
     color: white;
     background: #8A6343;
 }
-.searchbar small {
+input+small.error {
     display:none;
 }
-.searchbar.error small {
+input.ng-invalid + small.error {
     display: block;
 }
 
