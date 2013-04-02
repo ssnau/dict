@@ -20,6 +20,6 @@ module.exports = function(app) {
     app.get("/voice/:word", function(req, res) {
         var audio = helper.getWordVoice(req.params.word, app.VOICE_ROOT);
         audio && res.send(audio);
-        res.send(404);
+        !audio && res.send(404);
     })
 }
