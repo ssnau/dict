@@ -90,6 +90,7 @@ function getWord(word_list) {
 
 		//结束
 		res.on('end', function(){
+            /*
 			var position = result.indexOf('<div class="collins" >');
 			if (position != -1) { 
 				result = result.substring(position); //get the <div class="collins" ... to end
@@ -102,6 +103,11 @@ function getWord(word_list) {
 			} else {
 				failWord(word);
 			}
+            */
+            util.saveToFile(filename, result);
+            success++;
+            continueSuccess = lastStatus ? (continueSuccess + 1) : 0;
+            lastStatus = true;
 
 			//每成功80次，歇10分钟
 			/*
